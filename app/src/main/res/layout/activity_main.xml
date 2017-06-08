@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:orientation="vertical"
+    android:weightSum="4"
+    tools:context="demo.ethings.com.ethingsble.activity.MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"></LinearLayout>
+
+    <ImageView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:gravity="center"
+        android:scaleType="centerInside"
+        android:src="@drawable/ethings_logo"
+        android:text="@string/ethings"
+        android:textColor="@color/black"
+        android:textSize="40sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_find_tag"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/buttonmarginleft"
+            android:layout_marginRight="@dimen/buttonmarginright"
+            android:background="@drawable/button_selector"
+            android:drawableEnd="@drawable/search"
+            android:drawableRight="@drawable/search"
+            android:paddingRight="10dp"
+            android:text="Find my tag"
+            android:textColor="@color/black" />
+
+        <!--<Button-->
+        <!--android:id="@+id/btn_add_new_tag"-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginLeft="@dimen/buttonmarginleft"-->
+        <!--android:layout_marginRight="@dimen/buttonmarginright"-->
+        <!--android:layout_marginTop="20dp"-->
+        <!--android:background="@color/white"-->
+        <!--android:drawableEnd="@drawable/add"-->
+        <!--android:drawableRight="@drawable/add"-->
+        <!--android:text="Add new tag"-->
+        <!--android:textColor="@color/black" />-->
+    </LinearLayout>
+</LinearLayout>

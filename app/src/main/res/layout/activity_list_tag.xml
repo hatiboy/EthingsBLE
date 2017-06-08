@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <ListView
+        android:id="@+id/list_tag"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/btn_add_new_tag"
+        android:layout_margin="10dp"
+        android:divider="@color/white"
+        android:dividerHeight="10dp"
+        android:foregroundGravity="center"
+        android:padding="20dp" />
+
+    <Button
+        android:id="@+id/btn_add_new_tag"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/buttonmarginright"
+        android:layout_marginLeft="@dimen/buttonmarginleft"
+        android:layout_marginRight="@dimen/buttonmarginright"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/button_selector"
+        android:drawableEnd="@drawable/add"
+        android:drawableRight="@drawable/add"
+        android:paddingRight="10dp"
+        android:text="Add new tag"
+        android:textColor="@color/black" />
+</RelativeLayout>

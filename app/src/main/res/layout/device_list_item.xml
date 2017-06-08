@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="85dp"
+    android:background="@drawable/corners"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:weightSum="1">
+
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="0.04"
+        android:paddingTop="3dp"
+        android:singleLine="true"
+        android:text="Large Text"
+        android:textAlignment="center"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/device_item_textcolor"
+        android:textSize="30dp"
+        android:textStyle="bold" />
+
+    <View
+        android:id="@+id/line"
+        android:layout_width="250dp"
+        android:layout_height="1dp"
+        android:layout_below="@+id/titleTextView"
+        android:background="@color/device_item_textcolor" />
+
+    <TextView
+        android:id="@+id/macAddress"
+        android:layout_width="200dp"
+        android:layout_height="30dp"
+        android:layout_alignEnd="@+id/titleTextView"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/titleTextView"
+        android:layout_below="@+id/titleTextView"
+        android:text="MAC Address"
+        android:textColor="@color/device_item_textcolor"
+        android:textOff="@string/button_disconnect"
+        android:textOn="@string/button_connect" />
+
+</RelativeLayout>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="demo.ethings.com.ethingsble.activity.FindDeviceActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title="Device name" />
+
+        <!--<TextView-->
+        <!--android:id="@+id/data_characteristic_uuid"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginLeft="16dp"-->
+        <!--android:layout_marginRight="16dp"-->
+        <!--android:text="@string/no_data_characteristic"-->
+        <!--android:textAppearance="@style/CodeTextAppearance"-->
+        <!--android:textColor="?actionMenuTextColor" />-->
+
+        <!--<TextView-->
+        <!--android:id="@+id/data_characteristic_value"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginLeft="16dp"-->
+        <!--android:layout_marginRight="16dp"-->
+        <!--android:layout_marginBottom="8dp"-->
+        <!--android:textAppearance="@style/CodeTextAppearance"-->
+        <!--android:textColor="?actionMenuTextColor" />-->
+
+    </android.support.design.widget.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ToggleButton
+            android:id="@+id/tg_find"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:background="@color/black"
+            android:gravity="center"
+            android:onClick="toggleClick"
+            android:textColor="@color/white"
+            tools:layout_editor_absoluteX="8dp" />
+    </LinearLayout>
+</LinearLayout>

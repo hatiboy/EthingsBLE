@@ -9,8 +9,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -39,6 +39,7 @@ public class TagDeviceAdapter extends ArrayAdapter<TagDevice> {
         public TextView name;
         public TextView intensity;
         public TextView pin;
+        ImageView iv_state;
 
     }
 
@@ -57,6 +58,7 @@ public class TagDeviceAdapter extends ArrayAdapter<TagDevice> {
             holder.name = (TextView) vi.findViewById(R.id.tv_name_tag);
             holder.intensity = (TextView) vi.findViewById(R.id.tv_intensity);
             holder.pin = (TextView) vi.findViewById(R.id.tv_pin);
+            holder.iv_state = (ImageView) vi.findViewById(R.id.iv_state);
 
             /************  Set holder with LayoutInflater ************/
             vi.setTag(holder);
@@ -65,14 +67,13 @@ public class TagDeviceAdapter extends ArrayAdapter<TagDevice> {
         if (devices != null) {
             TagDevice tag = devices.get(position);
             holder.name.setText(tag.getName());
-            holder.intensity.setText(tag.getIntensity() + " pin");
+            holder.intensity.setText(tag.getRSSI() + "");
             holder.pin.setText(tag.getPin() + "%");
-            vi.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Toast.makeText(context.getApplicationContext(), "Coming soon", Toast.LENGTH_SHORT).show();
-                }
-            });
+            if (tag.getState()) {
+                holder.iv_state.setImageResource(R.drawable.state_on);
+            } else {
+                holder.iv_state.setImageResource(R.drawable.state_off);
+            }
         }
 
         return vi;

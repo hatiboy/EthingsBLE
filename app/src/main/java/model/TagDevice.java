@@ -5,10 +5,23 @@ package model;
  */
 
 public class TagDevice {
-    private String id;
+    private String address;
     private String name;
-    private int intensity;
+    private int rssi;
     private int pin;
+    private boolean state;
+
+    public TagDevice() {
+
+    }
+
+    public boolean getState() {
+        return state;
+    }
+
+    public void setState(boolean state) {
+        this.state = state;
+    }
 
     public String getName() {
         return name;
@@ -18,12 +31,12 @@ public class TagDevice {
         this.name = name;
     }
 
-    public int getIntensity() {
-        return intensity;
+    public int getRSSI() {
+        return rssi;
     }
 
-    public void setIntensity(int intensity) {
-        this.intensity = intensity;
+    public void setRSSI(int rssi) {
+        this.rssi = rssi;
     }
 
     public int getPin() {
@@ -34,18 +47,19 @@ public class TagDevice {
         this.pin = pin;
     }
 
-    public String getId() {
-        return id;
+    public String getAddress() {
+        return address;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
-    public TagDevice(String id, String name, int intensity, int pin) {
-        this.id = id;
+    public TagDevice(String address, String name, int rssi, int pin, boolean state) {
+        this.address = address;
         this.name = name;
-        this.intensity = intensity;
+        this.rssi = rssi;
         this.pin = pin;
+        this.state = state;
     }
 }

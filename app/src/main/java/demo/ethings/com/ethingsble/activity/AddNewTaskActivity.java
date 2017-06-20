@@ -79,7 +79,7 @@ public class AddNewTaskActivity extends Activity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // Create a new device item
-                TagDevice newDevice = new TagDevice(device.getAddress(), device.getName(), 0, 0);
+                TagDevice newDevice = new TagDevice(device.getAddress(), device.getName(), 0, 0, true);
                 // Add it to our adapter
 //                mAdapter.add(newDevice);
             }

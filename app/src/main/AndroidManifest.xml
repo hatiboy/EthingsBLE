@@ -12,6 +12,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"
@@ -26,7 +27,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ething_ic_launcher"
+        android:icon="@mipmap/logo_blue"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -86,6 +87,7 @@
         </receiver>
 
         <activity android:name=".activity.FindDeviceActivity"
+            android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 

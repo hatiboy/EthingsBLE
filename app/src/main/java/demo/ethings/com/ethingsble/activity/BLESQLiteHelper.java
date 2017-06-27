@@ -79,7 +79,8 @@ public class BLESQLiteHelper extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(DEVICES_COLUMN_ADDRESS, device.getAddress());
         contentValues.put(DEVICES_COLUMN_NAME, device.getName());
-        contentValues.put(DEVICES_COLUMN_PIN, device.getPin());
+        contentValues.put(DEVICES_COLUMN_PIN, 72);
+//        contentValues.put(DEVICES_COLUMN_PIN, device.getPin());
         contentValues.put(DEVICES_COLUMN_INTENSITY, device.getRSSI());
         int state = (device.getState()) ? 1 : 0;
         contentValues.put(DEVICES_COLUMN_STATE, state);

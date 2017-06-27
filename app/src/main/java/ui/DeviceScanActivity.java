@@ -33,8 +33,10 @@ import java.util.Map;
 import adapter.BleDevicesAdapter;
 import configure.AppConfig;
 import demo.ethings.com.ethingsble.R;
+import demo.ethings.com.ethingsble.activity.BLESQLiteHelper;
 import demo.ethings.com.ethingsble.activity.FindDeviceActivity;
 import fusion.SensorFusionActivity;
+import model.TagDevice;
 
 /**
  * Activity to scan and displaying available Bluetooth LE devices.
@@ -53,6 +55,9 @@ public class DeviceScanActivity extends AppCompatActivity
     private static final long SCAN_PERIOD = 3000L;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final String TAG = DeviceScanActivity.class.getName();
+    private BLESQLiteHelper helper;
+    private ArrayList<TagDevice> tagDevices;
+
 
     /**
      * BLE devices adapter.
@@ -98,6 +103,9 @@ public class DeviceScanActivity extends AppCompatActivity
         listView = (ListView) findViewById(android.R.id.list);
         listView.setEmptyView(emptyView);
         listView.setOnItemClickListener(this);
+        //set helper:
+        helper = new BLESQLiteHelper(this);
+        tagDevices = helper.getAllDevices();
 
         fab = (FloatingActionButton) findViewById(R.id.scan_fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -305,6 +313,13 @@ public class DeviceScanActivity extends AppCompatActivity
 
     }
 
+    private boolean isWhiteList(BluetoothDevice device) {
+        for (TagDevice tag : tagDevices) {
+            if (tag.getAddress().equals(device.getAddress())) return true;
+        }
+        return false;
+    }
+
     private class ScanProcessor implements BleScanner.BleScannerListener {
 
         /**
@@ -347,7 +362,8 @@ public class DeviceScanActivity extends AppCompatActivity
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi,
                              byte[] bytes) {
-            scanMap.put(device, rssi);
+//            if (!isWhiteList(device))
+                scanMap.put(device, rssi);
         }
 
         private synchronized void updateDevices() {

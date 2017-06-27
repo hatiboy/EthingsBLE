@@ -102,6 +102,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (b)
                     bluetoothGatt = getBluetoothGatt();
+//                bluetoothGatt.getConnec
                 else if (bluetoothGatt != null)
                     try {
                         bluetoothGatt.disconnect();
@@ -203,12 +204,13 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
                     Log.i(TAG, "Attempting to start service discovery:" + gatt.discoverServices());
                     gatt.discoverServices();
                     setStateDevice(true);
+                    progressDialog.dismiss();
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     Log.i(TAG, "Disconnected from GATT server.");
                     //Toast.makeText(getApplicationContext(), "Disconnected from GATT server", Toast.LENGTH_SHORT).show();
                     String title = "Device disconnect";
                     String message = "Your device : " + bluetoothDevice.getName() + " is not in your range or disconnect";
-                    showNotification(title, message, true);
+//                    showNotification(title, message, true);
                     setStateDevice(false);
 //                    finish();
                 }
@@ -232,9 +234,9 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
             @Override
             public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
 //                super.onCharacteristicChanged(gatt, characteristic);
-                if (characteristic.getValue() != null) {
-                    showNotification("Ethings", "Finding your phone", true);
-                }
+//                if (characteristic.getValue() != null) {
+//                    showNotification("Ethings", "Finding your phone", true);
+//                }
             }
 
             @Override
@@ -255,7 +257,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
             @Override
             public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
 //                super.onReadRemoteRssi(gatt, rssi, status);
-
+                Log.d(TAG, "onReadRemoteRssi: " + rssi);
             }
 
 
@@ -293,7 +295,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
         helper.deleteDevice(bluetoothDevice.getAddress());
     }
 
-    public void showNotification(String title, String message, boolean vibaration) {
+    public void showNotification(String title, String message, boolean vibaration, int id) {
         if (vibaration) {
             Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
             // Vibrate for 500 milliseconds

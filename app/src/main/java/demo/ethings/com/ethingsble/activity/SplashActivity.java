@@ -113,12 +113,12 @@ public class SplashActivity extends Activity {
         // while interacting with the UI.
 //        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
         // overridePendingTransition(R.anim.right_to_left, R.anim.left_to_right);
-        findViewById(R.id.splash_image).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(SplashActivity.this, MainActivity.class));
-            }
-        });
+//        findViewById(R.id.splash_image).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                startActivity(new Intent(SplashActivity.this, MainActivity.class));
+//            }
+//        });
         BTAdapter = BluetoothAdapter.getDefaultAdapter();
         // Phone does not support Bluetooth so let the user know and exit.
         if (BTAdapter == null) {

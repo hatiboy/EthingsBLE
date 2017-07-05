@@ -10,11 +10,17 @@ import com.chimeraiot.android.ble.BleUtils;
 import configure.AppConfig;
 
 
-/** Bluetooth state broadcast receiver. Used to re-enable listener service. */
+/**
+ * Bluetooth state broadcast receiver. Used to re-enable listener service.
+ */
 public class BluetoothStateReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+            context.startService(new Intent(context, BluetoothLeService.class));
+        }
         if (!AppConfig.ENABLE_RECORD_SERVICE) {
             return;
         }

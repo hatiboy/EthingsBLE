@@ -3,7 +3,6 @@ package demo.ethings.com.ethingsble.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -19,12 +18,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.View;
@@ -47,6 +43,7 @@ import adapter.BleDevicesAdapter;
 import adapter.TagDeviceAdapter;
 import demo.ethings.com.ethingsble.R;
 import model.TagDevice;
+import service.BluetoothLeService;
 import ui.DeviceScanActivity;
 import ui.ErrorDialog;
 
@@ -55,13 +52,15 @@ public class ListTagActivity extends Activity {
     private static final String TAG = ListTagActivity.class.getName();
     private ListView listTag;
     private Button addnewtag;
-    ArrayList<TagDevice> list_tag_devices;
+    private ArrayList<TagDevice> list_tag_devices;
+    private ArrayList<String> list_tag_address;
     BLESQLiteHelper helper;
     private BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
     private Set<BluetoothDevice> boundedAdapter = BTAdapter.getBondedDevices();
     private TagDeviceAdapter adapter;
     private BleScanner scanner;
     private BluetoothAdapter bluetoothAdapter;
+    private BluetoothDevice currentDevice;
     protected SwipeRefreshLayout refresh;
     /**
      * Request to enable Bluetooth.
@@ -76,7 +75,6 @@ public class ListTagActivity extends Activity {
     private BleDevicesAdapter leDeviceListAdapter;
     private List<BluetoothDevice> connectedDevices;
     private List<BluetoothDevice> onlineDevice;
-    private List<BluetoothGatt> listBluetoothGatt;
 
     private String port64 = "F000AA64-0451-4000-B000-000000000000";
     //    private String port65 = "F000AA65-0451-4000-B000-000000000000";
@@ -88,6 +86,9 @@ public class ListTagActivity extends Activity {
     //    private String uuidNotifiCharacteristic = "F000ffe1-0451-4000-B000-000000000000";
     private String uuidNotifiCharacteristic = "0000ffe1-0000-1000-8000-00805f9b34fb";
     private static final String CHARACTERISTIC_NOTIFICATION_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
+    //    public final static String INTENT_EXTRA_DEVICE_ADDRESS = "device_address";
+    public static final String INTENT_EXTRA_LIST_TAG_DEVICE_ADDRESS = "list_tag_devices";
+
 //    private static final String CHARACTERISTIC_NOTIFICATION_CONFIG = "F0002902-0451-4000-B000-000000000000";
 
     @Override
@@ -110,12 +111,12 @@ public class ListTagActivity extends Activity {
         helper = new BLESQLiteHelper(this);
 
         list_tag_devices = new ArrayList<TagDevice>();
+        list_tag_address = new ArrayList<>();
 //        ArrayList<TagDevice> devicess = helper.getAllDevices();
 
 //        list_tag_devices.add(new TagDevice("24:71:89:E6:78:06", "Bag", 4 , 100, false));
 
         onlineDevice = new ArrayList<>();
-        listBluetoothGatt = new ArrayList<>();
         addnewtag.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -160,11 +161,6 @@ public class ListTagActivity extends Activity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         helper.deleteDevice(list_tag_devices.get(position));
-                        for(BluetoothGatt gatt : listBluetoothGatt){
-                            if(gatt.getDevice().getAddress().equals(list_tag_devices.get(position).getAddress())){
-                                gatt.disconnect();
-                            }
-                        }
                         list_tag_devices.remove(position);
                         adapter.notifyDataSetChanged();
                     }
@@ -200,12 +196,12 @@ public class ListTagActivity extends Activity {
 
         requestLocation();
 
+
     }
 
 
     // Also handle calls to onNewIntent.
     @Override
-
     protected void onNewIntent(Intent intent) {
         loadData(intent);
     }
@@ -214,6 +210,16 @@ public class ListTagActivity extends Activity {
         list_tag_devices = helper.getAllDevices();
         adapter = new TagDeviceAdapter(this, R.layout.item_tag_device, list_tag_devices);
         listTag.setAdapter(adapter);
+        if (list_tag_devices != null && list_tag_devices.size() > 0) {
+            for (int i = 0; i < list_tag_devices.size(); i++) {
+                list_tag_address.add(list_tag_devices.get(i).getAddress());
+            }
+//            String deviceAddress = list_tag_devices.get(0).getAddress();
+            Intent i = new Intent(ListTagActivity.this, BluetoothLeService.class);
+//            i.putExtra(INTENT_EXTRA_DEVICE_ADDRESS, deviceAddress);
+            i.putStringArrayListExtra(INTENT_EXTRA_LIST_TAG_DEVICE_ADDRESS, list_tag_address);
+            startService(i);
+        }
     }
 
 
@@ -222,17 +228,23 @@ public class ListTagActivity extends Activity {
         super.onResume();
         loadData(getIntent());
         //config Bluetooth Adapter:
-        registerReceiver(receiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_READ_RSSI);
+        registerReceiver(receiver, intentFilter);
         BTAdapter.startDiscovery();
         //notify data
 //        list_tag_devices = helper.getAllDevices();
         adapter.notifyDataSetChanged();
 
-        tryconnect();
+//        tryconnect();
 
         if (leDeviceListAdapter == null) {
             leDeviceListAdapter = new BleDevicesAdapter(getBaseContext());
         }
+
 
     }
 
@@ -244,12 +256,12 @@ public class ListTagActivity extends Activity {
 //            if (type == BluetoothDevice.DEVICE_TYPE_LE || type == BluetoothDevice.DEVICE_TYPE_DUAL) {
         connectedDevices = bluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
         for (final BluetoothDevice tag : connectedDevices) {
-            connectDevice(tag);
+//            connectDevice(tag);
         }
         loops:
         for (int i = 0; i < list_tag_devices.size(); i++) {
             for (final BluetoothDevice tag : connectedDevices) {
-                if(tag.getAddress().equals(list_tag_devices.get(i).getAddress())){
+                if (tag.getAddress().equals(list_tag_devices.get(i).getAddress())) {
                     list_tag_devices.get(i).setState(true);
                     list_tag_devices.get(i).setRSSI(0);
                     adapter.notifyDataSetChanged();
@@ -260,54 +272,66 @@ public class ListTagActivity extends Activity {
         }
     }
 
+    private void setStateDevice(BluetoothDevice device, boolean state) {
+        for (int i = 0; i < list_tag_devices.size(); i++) {
+            if (device.getAddress().equals(list_tag_devices.get(i).getAddress())) {
+                if (state) {
+                    onlineDevice.add(device);
+                    list_tag_devices.get(i).setState(true);
+//                    ListTagActivity.this.runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+                    adapter.notifyDataSetChanged();
+//                        }
+//                    });
+
+                } else {
+                    onlineDevice.remove(device);
+                    TagDevice tag = list_tag_devices.get(i);
+                    tag.setState(false);
+                    tag.setRSSI(0);
+                    list_tag_devices.remove(i);
+                    list_tag_devices.add(tag);
+//                    ListTagActivity.this.runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+                    adapter.notifyDataSetChanged();
+//                        }
+//                    });
+
+                }
+            }
+        }
+    }
+
+    public void setDeviceRssi(BluetoothDevice device, int rssi){
+        for (int i = 0; i < list_tag_devices.size(); i++) {
+            if (device.getAddress().equals(list_tag_devices.get(i).getAddress())) {
+                list_tag_devices.get(i).setRSSI(rssi);
+                list_tag_devices.get(i).setPin(72);
+                ListTagActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                        listTag.setAdapter(adapter);
+                    }
+                });
+            }
+        }
+    }
+
     private void connectDevice(final BluetoothDevice device) {
+//        setCurrentDevice(device);
         final BluetoothGatt bluetoothGatt = device.connectGatt(this, true, new BluetoothGattCallback() {
+            //            BluetoothDevice device = getCurrentDevice();
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 //                                super.onConnectionStateChange(gatt, status, newState);
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    for (int i = 0; i < list_tag_devices.size(); i++) {
-                        if (device.getAddress().equals(list_tag_devices.get(i).getAddress())) {
-                            onlineDevice.add(device);
-                            listBluetoothGatt.add(gatt);
-                            final int finalI = i;
-                            list_tag_devices.get(finalI).setState(true);
-                            ListTagActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    adapter.notifyDataSetChanged();
-                                }
-                            });
-                            String title = "Device connected";
-                            String message = "Your device : " + list_tag_devices.get(i).getName() + " is connected";
-                            showNotification(title, message, false, i);
-                            gatt.discoverServices();
-                        }
-                    }
+                    setStateDevice(device, true);
+                    gatt.discoverServices();
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    for (int i = 0; i < list_tag_devices.size(); i++) {
-                        if (device.getAddress().equals(list_tag_devices.get(i).getAddress())) {
-                            onlineDevice.remove(device);
-                            listBluetoothGatt.remove(gatt);
-                            final int finalI = i;
-                            TagDevice tag = list_tag_devices.get(finalI);
-                            tag.setState(false);
-                            tag.setRSSI(0);
-                            list_tag_devices.remove(i);
-                            list_tag_devices.add(tag);
-                            ListTagActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    adapter.notifyDataSetChanged();
-                                }
-                            });
-
-                            String title = "Device disconnect";
-                            String message = "Your device : " + list_tag_devices.get(i).getName() + " is not in your range or disconnect";
-                            showNotification(title, message, true, i);
-                        }
-
-                    }
+                    setStateDevice(device, false);
                 }
             }
 
@@ -338,7 +362,7 @@ public class ListTagActivity extends Activity {
 //                super.onCharacteristicChanged(gatt, characteristic);
                 Log.d(TAG, "onCharacteristicChanged: " + characteristic.getUuid());
                 if (characteristic.getUuid().equals(UUID.fromString(uuidNotifiCharacteristic))) {
-                    showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
+//                    showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
                     gatt.discoverServices();
                 }
             }
@@ -348,20 +372,7 @@ public class ListTagActivity extends Activity {
 //                super.onReadRemoteRssi(gatt, rssi, status);
                 Log.d(TAG, "onReadRemoteRssi: " + rssi);
                 if (BluetoothGatt.GATT_SUCCESS == status) {
-                    for (int i = 0; i < list_tag_devices.size(); i++) {
-                        if (gatt.getDevice().getAddress().equals(list_tag_devices.get(i).getAddress())) {
-                            final int finalI = i;
-                            list_tag_devices.get(finalI).setRSSI(rssi);
-                            list_tag_devices.get(finalI).setPin(72);
-                            ListTagActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    adapter.notifyDataSetChanged();
-                                    listTag.setAdapter(adapter);
-                                }
-                            });
-                        }
-                    }
+                    setDeviceRssi(device, rssi);
 //                    write66(true);
                     BluetoothGattService bluetoothGattService = gatt.getService(UUID.fromString(uuidNotifiService));
                     BluetoothGattCharacteristic bluetoothGattCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString(uuidNotifiCharacteristic));
@@ -376,7 +387,7 @@ public class ListTagActivity extends Activity {
             @Override
             public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
                 if (BluetoothGatt.GATT_SUCCESS == status) {
-                    showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
+//                    showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
                 }
             }
 
@@ -390,6 +401,15 @@ public class ListTagActivity extends Activity {
         });
     }
 
+    private BluetoothDevice getCurrentDevice() {
+        return currentDevice;
+    }
+
+    private void setCurrentDevice(BluetoothDevice device) {
+        this.currentDevice = device;
+    }
+
+    //    private android.bluetooth.BluetoothGattCallback mBluetoothGattCalBack =
     int count = 0;
 
     @Override
@@ -460,25 +480,56 @@ public class ListTagActivity extends Activity {
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
             String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                try {
-//                    int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
-//                    String name = intent.getStringExtra(BluetoothDevice.EXTRA_NAME);
-//                    Log.d(TAG, "onReceive: rssi " + rssi + " name: " + name);
-//                    for (int i = 0; i < list_tag_devices.size(); i++) {
-//                        if (list_tag_devices.get(i).getName().equals(name)) {
-//                            list_tag_devices.get(i).setRSSI(rssi);
-//                            list_tag_devices.get(i).setState(!list_tag_devices.get(i).getState());
-//                            helper.updateDevice(list_tag_devices.get(i));
-//                            adapter.notifyDataSetChanged();
-//                        }
-//                    }
-                    // scanner.start();
-                } catch (Exception e) {
+            Bundle bundle = intent.getExtras();
+            switch (action) {
+                case BluetoothDevice.ACTION_FOUND:
+                    //do some thing
+                    break;
+                case BluetoothLeService.ACTION_GATT_DISCONNECTED:
+                    Log.d(TAG, "onReceive: " + BluetoothLeService.ACTION_GATT_DISCONNECTED);
+                    if (bundle != null) {
+                        String address = bundle.getString(BluetoothLeService.ACTION_INTENT_DEVICE_ADDRESS);
+                        if (address != null && BTAdapter != null) {
+                            BluetoothDevice device = BTAdapter.getRemoteDevice(address);
+                            if (device == null) {
+                                Log.w(TAG, "Device not found.  Unable to connect.");
+                                return;
+                            }
+                            setStateDevice(device, false);
+                        }
+                    }
+                    break;
+                case BluetoothLeService.ACTION_GATT_CONNECTED:
+                    Log.d(TAG, "onReceive: " + BluetoothLeService.ACTION_GATT_CONNECTED);
 
-                }
+                    if (bundle != null) {
+                        String address = bundle.getString(BluetoothLeService.ACTION_INTENT_DEVICE_ADDRESS);
+                        if (address != null && BTAdapter != null) {
+                            BluetoothDevice device = BTAdapter.getRemoteDevice(address);
+                            if (device == null) {
+                                Log.w(TAG, "Device not found.  Unable to connect.");
+                                return;
+                            }
+                            setStateDevice(device, true);
+                        }
+                    }
+                    break;
+                case BluetoothLeService.ACTION_READ_RSSI:
+                    Log.d(TAG, "onReceive: " + BluetoothLeService.ACTION_READ_RSSI);
+                    if (bundle != null) {
+                        String address = bundle.getString(BluetoothLeService.ACTION_INTENT_DEVICE_ADDRESS);
+                        int rssi  = bundle.getInt(BluetoothLeService.ACTION_INTENT_DEVICE_RSSI);
+                        if (address != null && BTAdapter != null) {
+                            BluetoothDevice device = BTAdapter.getRemoteDevice(address);
+                            if (device == null) {
+                                Log.w(TAG, "Device not found.  Unable to connect.");
+                                return;
+                            }
+                            setDeviceRssi(device, rssi);
+                        }
+                    }
+                    break;
             }
         }
     };
@@ -559,7 +610,7 @@ public class ListTagActivity extends Activity {
 //                rssiMap.put(device, rssi);
                 for (int i = 0; i < list_tag_devices.size(); i++) {
                     if (list_tag_devices.get(i).getAddress().equals(device.getAddress())) {
-                        connectDevice(device);
+//                        connectDevice(device);
                     }
                 }
             }
@@ -616,24 +667,6 @@ public class ListTagActivity extends Activity {
 
     }
 
-    public void showNotification(String title, String message, boolean vibaration, int notificationid) {
-        if (vibaration) {
-            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            // Vibrate for 500 milliseconds
-            v.vibrate(500);
-        }
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(ListTagActivity.this)
-                .setSmallIcon(R.mipmap.logo_blue)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.logo_blue))
-                .setContentTitle(title)
-                .setContentText(message);
-        // Sets an ID for the notification
-        // Gets an instance of the NotificationManager service
-        NotificationManager mNotifyMgr =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        // Builds the notification and issues it.
-        mNotifyMgr.notify(notificationid + 158, mBuilder.build());
-    }
 
     @Override
     protected void onDestroy() {

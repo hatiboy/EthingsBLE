@@ -20,6 +20,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Vibrator;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -81,19 +82,19 @@ public class BluetoothLeService extends Service {
     private void broadcastUpdateState(final String action, String address) {
         final Intent intent = new Intent(action);
         intent.putExtra(ACTION_INTENT_DEVICE_ADDRESS, address);
-        sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     private void broadcastUpdateRssi(String action, String address, int rssi) {
         final Intent intent = new Intent(action);
         intent.putExtra(ACTION_INTENT_DEVICE_ADDRESS, address);
         intent.putExtra(ACTION_INTENT_DEVICE_RSSI, rssi);
-        sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
-        sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     @Override
@@ -161,7 +162,7 @@ public class BluetoothLeService extends Service {
                 intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
             }
         }
-        sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     public class LocalBinder extends Binder {

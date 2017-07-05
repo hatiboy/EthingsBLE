@@ -2,6 +2,7 @@ package demo.ethings.com.ethingsble.activity;
 
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -23,23 +24,28 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.chimeraiot.android.ble.BleService;
 import com.chimeraiot.android.ble.BleServiceBindingActivity;
+import com.chimeraiot.android.ble.BleUtils;
 
 import java.util.UUID;
 
 import demo.ethings.com.ethingsble.R;
 import model.TagDevice;
 import service.BleSensorService;
+import ui.ErrorDialog;
 
 public class FindDeviceActivity extends BleServiceBindingActivity {
 
     //    private ToggleButton tg_find66;
     private ToggleButton tg_find65;
+    private ImageButton ib_led;
     private ToggleButton tg_connect;
     private BLESQLiteHelper helper;
     private static final String TAG = FindDeviceActivity.class.getName();
@@ -61,6 +67,8 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
     private boolean check = true;
     private String batteryPort = "00002a19-0000-1000-8000-00805f9b34fb";
     private int pin = 0;
+    private BluetoothAdapter bluetoothAdapter;
+    private boolean led_state;
 
     @Override
     public Class<? extends BleService> getServiceClass() {
@@ -77,6 +85,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
 
 //        tg_find66 = (ToggleButton) findViewById(R.id.tg_find66);
         tg_find65 = (ToggleButton) findViewById(R.id.tg_find65);
+        ib_led = (ImageButton) findViewById(R.id.ib_led);
 //
 //        tg_find66.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 //            @Override
@@ -89,10 +98,21 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 write65(b);
-
             }
         });
-
+        ib_led.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (tg_connect.isChecked()) {
+                    write65(!led_state);
+                    led_state = !led_state;
+                    if (led_state) ib_led.setImageResource(R.drawable.led_on);
+                    else ib_led.setImageResource(R.drawable.led_off);
+                } else {
+                    Toast.makeText(getApplicationContext(), "connect device first", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
         //noinspection ConstantConditions
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -122,10 +142,33 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
             actionBar.setSubtitle(getDeviceAddress());
         }
         actionBar.setDisplayHomeAsUpEnabled(true);
+
+        //get Adapter
+        final int bleStatus = BleUtils.getBleStatus(getBaseContext());
+        switch (bleStatus) {
+            case BleUtils.STATUS_BLE_NOT_AVAILABLE:
+                ErrorDialog.newInstance(R.string.dialog_error_no_ble)
+                        .show(getFragmentManager(), ErrorDialog.TAG);
+                return;
+            case BleUtils.STATUS_BLUETOOTH_NOT_AVAILABLE:
+                ErrorDialog.newInstance(R.string.dialog_error_no_bluetooth)
+                        .show(getFragmentManager(), ErrorDialog.TAG);
+                return;
+            default:
+                bluetoothAdapter = BleUtils.getBluetoothAdapter(getBaseContext());
+        }
+
+        if (bluetoothAdapter == null) {
+            return;
+        }
+
         Intent bundle = getIntent();
+        String address;
         try {
-            if (bundle != null)
-                bluetoothDevice = bundle.getParcelableExtra("device");
+            if (bundle != null) {
+                address = bundle.getStringExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS);
+                bluetoothDevice = bluetoothAdapter.getRemoteDevice(address);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -225,6 +268,8 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
 //                    readPinLevel();
                     write65(true);
                     tg_find65.setChecked(true);
+                    led_state = true;
+                    ib_led.setImageResource(R.drawable.led_on);
 //                    write66(true);
                 } else if (status == BluetoothGatt.GATT_FAILURE) {
                     Toast.makeText(getApplicationContext(), "Service discovered fail", Toast.LENGTH_SHORT).show();

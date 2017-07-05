@@ -306,9 +306,7 @@ public class DeviceScanActivity extends AppCompatActivity
         }
 
         final Intent intent = new Intent(this, FindDeviceActivity.class);
-        intent.putExtra(FindDeviceActivity.EXTRAS_DEVICE_NAME, device.getName());
         intent.putExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-        intent.putExtra("device", leDeviceListAdapter.getDevice(position));
         startActivity(intent);
 
     }

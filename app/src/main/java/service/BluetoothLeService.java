@@ -20,6 +20,7 @@ import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
@@ -31,7 +32,10 @@ import java.util.List;
 import java.util.UUID;
 
 import demo.ethings.com.ethingsble.R;
+import demo.ethings.com.ethingsble.activity.BLESQLiteHelper;
 import demo.ethings.com.ethingsble.activity.ListTagActivity;
+import model.TagDevice;
+import singleton.EthingSingleTon;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -55,7 +59,10 @@ public class BluetoothLeService extends Service {
     public static final String ACTION_INTENT_DEVICE_ADDRESS = "com.ething.ble.tag.device.address";
     public static final String ACTION_INTENT_DEVICE_RSSI = "com.ething.ble.tag.device.rssi";
 
-    public static final String ACTION_CALL_DELETE_DEVICE = "com.ething.ble.tag.device.disconnect.gatt";
+    public static final String ACTION_CALL_DISCONNECT = "com.ething.ble.tag.device.disconnect.gatt";
+    public static final String ACTION_CALL_CONNECT = "com.ething.ble.tag.device.connect.gatt";
+    public static final String ACTION_WRITE_65 = "com.ething.ble.tag.device.write65";
+
     public final static String ACTION_GATT_CONNECTED =
             "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
     public final static String ACTION_GATT_DISCONNECTED =
@@ -77,6 +84,7 @@ public class BluetoothLeService extends Service {
 
     public ArrayList<String> deviceAddress;
     public static final int NOTIFI_STATE_ID = 158;
+    private BLESQLiteHelper helper;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -103,6 +111,7 @@ public class BluetoothLeService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        helper = new BLESQLiteHelper(this);
     }
 
     @Override
@@ -124,15 +133,26 @@ public class BluetoothLeService extends Service {
 
         //register Broadcast
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(ACTION_CALL_DELETE_DEVICE);
+        intentFilter.addAction(ACTION_CALL_DISCONNECT);
+        intentFilter.addAction(ACTION_CALL_CONNECT);
+        intentFilter.addAction(ACTION_WRITE_65);
+        intentFilter.addAction(Intent.ACTION_TIME_TICK);
         LocalBroadcastManager.getInstance(this).registerReceiver(controllReceiver, intentFilter);
+
+        //start timer to read remote rssi every 3s
+        startTimer();
 
         return START_REDELIVER_INTENT;
     }
 
     @Override
     public void onDestroy() {
+        //unregister receiver
         LocalBroadcastManager.getInstance(this).unregisterReceiver(controllReceiver);
+        //send broadcast to restart service
+        Intent broadcastIntent = new Intent("ething.ble.BroadcastRestartService");
+        sendBroadcast(broadcastIntent);
+        //cancel timer
         super.onDestroy();
     }
 
@@ -257,11 +277,15 @@ public class BluetoothLeService extends Service {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     intentAction = ACTION_GATT_CONNECTED;
                     mConnectionState = STATE_CONNECTED;
+                    //send broadcast to listtag activity
                     broadcastUpdateState(intentAction, device.getAddress());
+                    //save state device in database
+                    setStateDevice(gatt.getDevice(), true);
                     //show notification
                     String title = "Device connected";
                     String message = "Your device : " + device.getName() + " is connected";
                     showNotification(title, message, false, NOTIFI_STATE_ID);
+
                     Log.i(TAG, "Connected to GATT server.");
                     // Attempts to discover services after successful connection.
                     Log.i(TAG, "Attempting to start service discovery:" +
@@ -272,6 +296,9 @@ public class BluetoothLeService extends Service {
                     mConnectionState = STATE_DISCONNECTED;
                     Log.i(TAG, "Disconnected from GATT server.");
                     broadcastUpdateState(intentAction, device.getAddress());
+                    //save state device in database
+                    setStateDevice(gatt.getDevice(), false);
+                    check = false;
                     //show Notification
                     String title = "Device disconnect";
                     String message = "Your device : " + device.getName() + " is not in your range or disconnect";
@@ -288,7 +315,7 @@ public class BluetoothLeService extends Service {
 //                }
                 if (status == BluetoothGatt.GATT_SUCCESS) {
 //                    readPinLevel();
-                    gatt.readRemoteRssi();
+                    write65(true);
                 } else if (status == BluetoothGatt.GATT_FAILURE) {
                     Toast.makeText(getApplicationContext(), "Service discovered fail", Toast.LENGTH_SHORT).show();
                 }
@@ -307,8 +334,10 @@ public class BluetoothLeService extends Service {
             public void onCharacteristicChanged(BluetoothGatt gatt,
                                                 BluetoothGattCharacteristic characteristic) {
 //                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-                showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
-                gatt.discoverServices();
+                if (characteristic.getUuid().toString().equals(uuidNotifiCharacteristic)) {
+                    showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
+                    gatt.readRemoteRssi();
+                }
             }
 
             @Override
@@ -317,14 +346,21 @@ public class BluetoothLeService extends Service {
                 Log.d(TAG, "onReadRemoteRssi: " + rssi);
                 if (BluetoothGatt.GATT_SUCCESS == status) {
                     broadcastUpdateRssi(ACTION_READ_RSSI, device.getAddress(), rssi);
+                }
+            }
 
-                    BluetoothGattService bluetoothGattService = gatt.getService(UUID.fromString(uuidNotifiService));
-                    BluetoothGattCharacteristic bluetoothGattCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString(uuidNotifiCharacteristic));
-                    gatt.setCharacteristicNotification(bluetoothGattCharacteristic, true); //If so then enable notification in the BluetoothGatt
-                    BluetoothGattDescriptor descriptor = bluetoothGattCharacteristic.getDescriptor(UUID.fromString(CHARACTERISTIC_NOTIFICATION_CONFIG)); //Get the descripter that enables notification on the server
-                    descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE); //Set the value of the descriptor to enable notification
-//                        descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
-                    gatt.writeDescriptor(descriptor);//Write the descriptor
+            @Override
+            public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+//                super.onCharacteristicWrite(gatt, characteristic, status);
+                if (characteristic.getUuid().toString().equals(port65)) {
+                    if (check && status == BluetoothGatt.GATT_SUCCESS) {
+                        write66(true);
+                        check = false;
+                    }
+                } else if (characteristic.getUuid().toString().equals(port66)) {
+                    if (status == BluetoothGatt.GATT_SUCCESS) {
+                        toggleNotificationClick(true);
+                    }
                 }
             }
         });
@@ -411,6 +447,62 @@ public class BluetoothLeService extends Service {
         return mBluetoothGatt.getServices();
     }
 
+    //remote led:
+    byte[] config;
+    private boolean check = true;
+
+    private String port66 = "f000aa66-0451-4000-b000-000000000000";
+    private String port65 = "f000aa65-0451-4000-b000-000000000000";
+    private String port64 = "F000AA64-0451-4000-B000-000000000000";
+
+
+    private void write65(boolean b) {
+        try {
+            BluetoothGattService bluetoothGattService = mBluetoothGatt.getService(UUID.fromString(port64));
+            BluetoothGattCharacteristic bluetoothGattCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString(port65));
+            if (b) config = new byte[]{(byte) 1};
+            else config = new byte[]{(byte) 0};
+            bluetoothGattCharacteristic.setValue(config);
+            mBluetoothGatt.writeCharacteristic(bluetoothGattCharacteristic);
+            EthingSingleTon.getInstance().setLedState(b);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void write66(boolean b) {
+        try {
+            if (mBluetoothGatt != null) {
+                try {
+                    BluetoothGattService bluetoothGattService = mBluetoothGatt.getService(UUID.fromString(port64));
+                    BluetoothGattCharacteristic bluetoothGattCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString(port66));
+                    if (b) config = new byte[]{(byte) 1};
+                    else config = new byte[]{(byte) 0};
+                    bluetoothGattCharacteristic.setValue(config);
+                    mBluetoothGatt.writeCharacteristic(bluetoothGattCharacteristic);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*config notification service of tag*/
+    public void toggleNotificationClick(boolean state) {
+        //turn on notification
+        BluetoothGattService bluetoothGattService = mBluetoothGatt.getService(UUID.fromString(uuidNotifiService));
+        BluetoothGattCharacteristic bluetoothGattCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString(uuidNotifiCharacteristic));
+        mBluetoothGatt.setCharacteristicNotification(bluetoothGattCharacteristic, true); //If so then enable notification in the BluetoothGatt
+        BluetoothGattDescriptor descriptor = bluetoothGattCharacteristic.getDescriptor(UUID.fromString(CHARACTERISTIC_NOTIFICATION_CONFIG)); //Get the descripter that enables notification on the server
+        if (state)
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE); //Set the value of the descriptor to enable notification
+        else
+            descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+        mBluetoothGatt.writeDescriptor(descriptor);//Write the descriptor
+    }
+
     /*code xu ly notification*/
     public void showNotification(String title, String message, boolean vibaration, int notificationid) {
         if (vibaration) {
@@ -438,14 +530,53 @@ public class BluetoothLeService extends Service {
         // Builds the notification and issues it.
         mNotifyMgr.notify(notificationid + 158, mBuilder);
     }
+    //save state of tag
+    private void setStateDevice(BluetoothDevice bluetoothDevice, boolean state) {
+        TagDevice device = new TagDevice();
+        device.setAddress(bluetoothDevice.getAddress());
+        device.setName(bluetoothDevice.getName());
+        device.setRSSI(0);
+        device.setPin(72);
+        device.setState(state);
+        helper.insertDevice(device);
+    }
 
+    private Handler mHandler = new Handler();
+    public void startTimer() {
+        mHandler.postDelayed(updateTask, 3000);
+    }
+
+    private Runnable updateTask = new Runnable() {
+        public void run() {
+            Log.d(getString(R.string.app_name) + " ChatList.updateTask()",
+                    "updateTask run!");
+            mBluetoothGatt.readRemoteRssi();
+            // queue the task to run again in 3 seconds...
+            mHandler.postDelayed(updateTask, 3000);
+
+
+        }
+    };
     BroadcastReceiver controllReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            switch(action){
-                case ACTION_CALL_DELETE_DEVICE:
+            switch (action) {
+                case ACTION_CALL_DISCONNECT:
                     mBluetoothGatt.disconnect();
+                    mBluetoothGatt.close();
+                    break;
+                case ACTION_CALL_CONNECT:
+                    mBluetoothGatt.connect();
+                    break;
+                case ACTION_WRITE_65:
+                    boolean led_state = intent.getExtras().getBoolean("state");
+                    Log.d(TAG, "ACTION_WRITE_65 " + led_state);
+                    write65(led_state);
+                    break;
+                case Intent.ACTION_TIME_TICK:
+                    if (mBluetoothGatt != null)
+                        mBluetoothGatt.readRemoteRssi();
                     break;
             }
         }

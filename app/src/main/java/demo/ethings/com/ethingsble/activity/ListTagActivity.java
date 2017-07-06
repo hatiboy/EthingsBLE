@@ -67,7 +67,7 @@ public class ListTagActivity extends Activity  {
      * Request to enable Bluetooth.
      */
     private static final int REQUEST_ENABLE_BT = 1;
-    public OnItemTagDeviceDeleteListener onItemTagDeviceDeleteListener;
+
 
     /**
      * Scan delay period.
@@ -156,7 +156,7 @@ public class ListTagActivity extends Activity  {
                         helper.deleteDevice(list_tag_devices.get(position));
                         list_tag_devices.remove(position);
                         adapter.notifyDataSetChanged();
-                        Intent intent = new Intent(BluetoothLeService.ACTION_CALL_DELETE_DEVICE);
+                        Intent intent = new Intent(BluetoothLeService.ACTION_CALL_DISCONNECT);
                         LocalBroadcastManager.getInstance(ListTagActivity.this).sendBroadcast(intent);
                         //send data to Service to delete
                     }
@@ -661,13 +661,6 @@ public class ListTagActivity extends Activity  {
 
     }
 
-
-    public void setOnItemTagDeviceDelete(OnItemTagDeviceDeleteListener onItemTagDeviceDelete){
-        this.onItemTagDeviceDeleteListener = onItemTagDeviceDelete;
-    }
-    public interface OnItemTagDeviceDeleteListener{
-        public void deleteItem(BluetoothDevice device);
-    }
 
     @Override
     protected void onDestroy() {

@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -39,6 +40,8 @@ import java.util.UUID;
 import demo.ethings.com.ethingsble.R;
 import model.TagDevice;
 import service.BleSensorService;
+import service.BluetoothLeService;
+import singleton.EthingSingleTon;
 import ui.ErrorDialog;
 
 public class FindDeviceActivity extends BleServiceBindingActivity {
@@ -83,9 +86,15 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
         //init sqlite helper
         helper = new BLESQLiteHelper(this);
 
+        //read led_state
+
 //        tg_find66 = (ToggleButton) findViewById(R.id.tg_find66);
 //        tg_find65 = (ToggleButton) findViewById(R.id.tg_find65);
         ib_led = (ImageButton) findViewById(R.id.ib_led);
+        led_state = EthingSingleTon.getInstance().getLedState();
+        if (led_state) {
+            ib_led.setImageResource(R.drawable.led_on);
+        } else ib_led.setImageResource(R.drawable.led_off);
 //
 //        tg_find66.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 //            @Override
@@ -103,14 +112,17 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
         ib_led.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (tg_connect.isChecked()) {
-                    write65(!led_state);
-                    led_state = !led_state;
-                    if (led_state) ib_led.setImageResource(R.drawable.led_on);
-                    else ib_led.setImageResource(R.drawable.led_off);
-                } else {
-                    Toast.makeText(getApplicationContext(), "connect device first", Toast.LENGTH_SHORT).show();
-                }
+//                if (tg_connect.isChecked()) {
+//                    write65(!led_state);
+                led_state = !led_state;
+                Intent intent = new Intent(BluetoothLeService.ACTION_WRITE_65);
+                intent.putExtra("state", led_state);
+                LocalBroadcastManager.getInstance(FindDeviceActivity.this).sendBroadcast(intent);
+                if (led_state) ib_led.setImageResource(R.drawable.led_on);
+                else ib_led.setImageResource(R.drawable.led_off);
+//                } else {
+//                    Toast.makeText(getApplicationContext(), "connect device first", Toast.LENGTH_SHORT).show();
+//                }
             }
         });
         //noinspection ConstantConditions
@@ -120,15 +132,20 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
         tg_connect.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (b)
-                    bluetoothGatt = getBluetoothGatt();
-//                bluetoothGatt.getConnec
-                else if (bluetoothGatt != null)
-                    try {
-                        bluetoothGatt.disconnect();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                if (b) {
+                    //                   bluetoothGatt = getBluetoothGatt();
+                    LocalBroadcastManager.getInstance(FindDeviceActivity.this).sendBroadcast(new Intent(BluetoothLeService.ACTION_CALL_CONNECT));
+                    setStateDevice(true);
+                } else{
+                    LocalBroadcastManager.getInstance(FindDeviceActivity.this).sendBroadcast(new Intent(BluetoothLeService.ACTION_CALL_DISCONNECT));
+                    setStateDevice(false);
+                }
+//                    if (bluetoothGatt != null)
+//                    try {
+//                        bluetoothGatt.disconnect();
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
             }
         });
         final ActionBar actionBar = getSupportActionBar();
@@ -267,10 +284,8 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
 //                    readPinLevel();
                     write65(true);
-//                    tg_find65.setChecked(true);
                     led_state = true;
                     ib_led.setImageResource(R.drawable.led_on);
-//                    write66(true);
                 } else if (status == BluetoothGatt.GATT_FAILURE) {
                     Toast.makeText(getApplicationContext(), "Service discovered fail", Toast.LENGTH_SHORT).show();
                 }

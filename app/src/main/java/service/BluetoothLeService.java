@@ -13,8 +13,10 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.Bundle;
@@ -53,6 +55,7 @@ public class BluetoothLeService extends Service {
     public static final String ACTION_INTENT_DEVICE_ADDRESS = "com.ething.ble.tag.device.address";
     public static final String ACTION_INTENT_DEVICE_RSSI = "com.ething.ble.tag.device.rssi";
 
+    public static final String ACTION_CALL_DELETE_DEVICE = "com.ething.ble.tag.device.disconnect.gatt";
     public final static String ACTION_GATT_CONNECTED =
             "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
     public final static String ACTION_GATT_DISCONNECTED =
@@ -112,23 +115,24 @@ public class BluetoothLeService extends Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        assert deviceAddress != null;
         for (int i = 0; i < deviceAddress.size(); i++) {
             Log.d(TAG, "onStartCommand: device address: " + deviceAddress);
             if (initialize())
                 connect(deviceAddress.get(i));
         }
-//        Notification notification = new Notification(R.drawable.add, getText(R.string.label_state),
-//                System.currentTimeMillis());
-//        Intent notificationIntent = new Intent(this, ExampleActivity.class);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-//        notification.setLatestEventInfo(this, getText(R.string.notification_title),
-//                getText(R.string.notification_message), pendingIntent);
-//        startForeground(ONGOING_NOTIFICATION_ID, notification);
+
+        //register Broadcast
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ACTION_CALL_DELETE_DEVICE);
+        LocalBroadcastManager.getInstance(this).registerReceiver(controllReceiver, intentFilter);
+
         return START_REDELIVER_INTENT;
     }
 
     @Override
     public void onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(controllReceiver);
         super.onDestroy();
     }
 
@@ -434,5 +438,17 @@ public class BluetoothLeService extends Service {
         // Builds the notification and issues it.
         mNotifyMgr.notify(notificationid + 158, mBuilder);
     }
+
+    BroadcastReceiver controllReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            switch(action){
+                case ACTION_CALL_DELETE_DEVICE:
+                    mBluetoothGatt.disconnect();
+                    break;
+            }
+        }
+    };
 
 }

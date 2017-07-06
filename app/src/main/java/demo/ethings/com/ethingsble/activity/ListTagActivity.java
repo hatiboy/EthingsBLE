@@ -156,6 +156,8 @@ public class ListTagActivity extends Activity  {
                         helper.deleteDevice(list_tag_devices.get(position));
                         list_tag_devices.remove(position);
                         adapter.notifyDataSetChanged();
+                        Intent intent = new Intent(BluetoothLeService.ACTION_CALL_DELETE_DEVICE);
+                        LocalBroadcastManager.getInstance(ListTagActivity.this).sendBroadcast(intent);
                         //send data to Service to delete
                     }
                 });

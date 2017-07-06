@@ -44,7 +44,7 @@ import ui.ErrorDialog;
 public class FindDeviceActivity extends BleServiceBindingActivity {
 
     //    private ToggleButton tg_find66;
-    private ToggleButton tg_find65;
+//    private ToggleButton tg_find65;
     private ImageButton ib_led;
     private ToggleButton tg_connect;
     private BLESQLiteHelper helper;
@@ -84,7 +84,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
         helper = new BLESQLiteHelper(this);
 
 //        tg_find66 = (ToggleButton) findViewById(R.id.tg_find66);
-        tg_find65 = (ToggleButton) findViewById(R.id.tg_find65);
+//        tg_find65 = (ToggleButton) findViewById(R.id.tg_find65);
         ib_led = (ImageButton) findViewById(R.id.ib_led);
 //
 //        tg_find66.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -94,12 +94,12 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
 //            }
 //        });
 
-        tg_find65.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                write65(b);
-            }
-        });
+//        tg_find65.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+//                write65(b);
+//            }
+//        });
         ib_led.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -267,7 +267,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
 //                    readPinLevel();
                     write65(true);
-                    tg_find65.setChecked(true);
+//                    tg_find65.setChecked(true);
                     led_state = true;
                     ib_led.setImageResource(R.drawable.led_on);
 //                    write66(true);

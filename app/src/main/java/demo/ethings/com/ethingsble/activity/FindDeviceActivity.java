@@ -35,6 +35,7 @@ import com.chimeraiot.android.ble.BleService;
 import com.chimeraiot.android.ble.BleServiceBindingActivity;
 import com.chimeraiot.android.ble.BleUtils;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import demo.ethings.com.ethingsble.R;
@@ -44,8 +45,11 @@ import service.BluetoothLeService;
 import singleton.EthingSingleTon;
 import ui.ErrorDialog;
 
+import static demo.ethings.com.ethingsble.activity.ListTagActivity.INTENT_EXTRA_LIST_TAG_DEVICE_ADDRESS;
+
 public class FindDeviceActivity extends BleServiceBindingActivity {
 
+    public static String EXTRAS_DEVICE_CONNECT = "connect";
     //    private ToggleButton tg_find66;
 //    private ToggleButton tg_find65;
     private ImageButton ib_led;
@@ -72,6 +76,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
     private int pin = 0;
     private BluetoothAdapter bluetoothAdapter;
     private boolean led_state;
+    String address;
 
     @Override
     public Class<? extends BleService> getServiceClass() {
@@ -85,7 +90,19 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
 
         //init sqlite helper
         helper = new BLESQLiteHelper(this);
-
+        //get Data from Intent
+        Intent bundle = getIntent();
+        boolean isConnected = true;
+        try {
+            if (bundle != null) {
+                address = bundle.getStringExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS);
+                isConnected = bundle.getBooleanExtra(FindDeviceActivity.EXTRAS_DEVICE_CONNECT, true);
+                tg_connect.setChecked(isConnected);
+                bluetoothDevice = bluetoothAdapter.getRemoteDevice(address);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         //read led_state
 
 //        tg_find66 = (ToggleButton) findViewById(R.id.tg_find66);
@@ -134,11 +151,16 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (b) {
                     //                   bluetoothGatt = getBluetoothGatt();
+                    ArrayList<String> list_tag_address = new ArrayList<String>();
+                    list_tag_address.add(address);
+                    Intent i = new Intent(FindDeviceActivity.this, BluetoothLeService.class);
+                    i.putStringArrayListExtra(INTENT_EXTRA_LIST_TAG_DEVICE_ADDRESS, list_tag_address);
+                    startService(i);
                     LocalBroadcastManager.getInstance(FindDeviceActivity.this).sendBroadcast(new Intent(BluetoothLeService.ACTION_CALL_CONNECT));
-                    setStateDevice(true);
-                } else{
+                    //setStateDevice(true);
+                } else {
                     LocalBroadcastManager.getInstance(FindDeviceActivity.this).sendBroadcast(new Intent(BluetoothLeService.ACTION_CALL_DISCONNECT));
-                    setStateDevice(false);
+                    // setStateDevice(false);
                 }
 //                    if (bluetoothGatt != null)
 //                    try {
@@ -179,16 +201,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
             return;
         }
 
-        Intent bundle = getIntent();
-        String address;
-        try {
-            if (bundle != null) {
-                address = bundle.getStringExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS);
-                bluetoothDevice = bluetoothAdapter.getRemoteDevice(address);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 
     private void write65(boolean b) {

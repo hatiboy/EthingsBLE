@@ -39,11 +39,11 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import demo.ethings.com.ethingsble.R;
-import model.TagDevice;
-import service.BleSensorService;
-import service.BluetoothLeService;
-import singleton.EthingSingleTon;
-import ui.ErrorDialog;
+import demo.ethings.com.ethingsble.model.TagDevice;
+import demo.ethings.com.ethingsble.service.BleSensorService;
+import demo.ethings.com.ethingsble.service.BluetoothLeService;
+import demo.ethings.com.ethingsble.singleton.EthingSingleTon;
+import demo.ethings.com.ethingsble.ui.ErrorDialog;
 
 import static demo.ethings.com.ethingsble.activity.ListTagActivity.INTENT_EXTRA_LIST_TAG_DEVICE_ADDRESS;
 
@@ -274,7 +274,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                 String address = gatt.getDevice().getAddress();
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    Log.i(TAG, "Attempting to start service discovery:" + gatt.discoverServices());
+                    Log.i(TAG, "Attempting to start demo.ethings.com.ethingsble.service discovery:" + gatt.discoverServices());
                     gatt.discoverServices();
                     setStateDevice(true);
                     progressDialog.dismiss();
@@ -381,7 +381,7 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
                 .setContentText(message);
         // Sets an ID for the notification
         int mNotificationId = 1;
-        // Gets an instance of the NotificationManager service
+        // Gets an instance of the NotificationManager demo.ethings.com.ethingsble.service
         NotificationManager mNotifyMgr =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         // Builds the notification and issues it.

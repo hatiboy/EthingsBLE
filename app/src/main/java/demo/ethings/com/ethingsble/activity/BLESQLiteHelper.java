@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import model.TagDevice;
+import demo.ethings.com.ethingsble.model.TagDevice;
 
 /**
  * Created by dangv on 16/06/2017.

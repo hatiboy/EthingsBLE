@@ -11,7 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import demo.ethings.com.ethingsble.R;
-import device.DeviceListFragment;
+import demo.ethings.com.ethingsble.device.DeviceListFragment;
 
 /**
  * Created by FRAMGIA\nguyen.thanh.cong on 23/09/2015.

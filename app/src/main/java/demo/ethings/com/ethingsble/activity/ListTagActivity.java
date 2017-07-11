@@ -40,13 +40,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import adapter.BleDevicesAdapter;
-import adapter.TagDeviceAdapter;
+import demo.ethings.com.ethingsble.adapter.BleDevicesAdapter;
+import demo.ethings.com.ethingsble.adapter.TagDeviceAdapter;
 import demo.ethings.com.ethingsble.R;
-import model.TagDevice;
-import service.BluetoothLeService;
-import ui.DeviceScanActivity;
-import ui.ErrorDialog;
+import demo.ethings.com.ethingsble.model.TagDevice;
+import demo.ethings.com.ethingsble.service.BluetoothLeService;
+import demo.ethings.com.ethingsble.ui.DeviceScanActivity;
+import demo.ethings.com.ethingsble.ui.ErrorDialog;
 
 public class ListTagActivity extends Activity  {
 
@@ -611,7 +611,7 @@ public class ListTagActivity extends Activity  {
 
             scanMap.clear();
 
-            //update list tag adapter
+            //update list tag demo.ethings.com.ethingsble.adapter
 //            devicelop:
 //            for (int i = 0; i < list_tag_devices.size(); i++) {
 //                for (BluetoothDevice device : rssiMap.keySet()) {
@@ -653,8 +653,8 @@ public class ListTagActivity extends Activity  {
 //                    leDeviceListAdapter.notifyDataSetChanged();
 //
 //                    Log.d(TAG, "listtagdevice size: " + list_tag_devices.size());
-//                    adapter.notifyDataSetChanged();
-//                    listTag.setAdapter(adapter);
+//                    demo.ethings.com.ethingsble.adapter.notifyDataSetChanged();
+//                    listTag.setAdapter(demo.ethings.com.ethingsble.adapter);
 //                }
 //            });
         }

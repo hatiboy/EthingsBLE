@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import demo.ethings.com.ethingsble.R;
-import model.TagDevice;
+import demo.ethings.com.ethingsble.model.TagDevice;
 
 public class AddNewTaskActivity extends Activity {
     @Override
@@ -80,7 +80,7 @@ public class AddNewTaskActivity extends Activity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // Create a new device item
                 TagDevice newDevice = new TagDevice(device.getAddress(), device.getName(), 0, 0, true);
-                // Add it to our adapter
+                // Add it to our demo.ethings.com.ethingsble.adapter
 //                mAdapter.add(newDevice);
             }
         }

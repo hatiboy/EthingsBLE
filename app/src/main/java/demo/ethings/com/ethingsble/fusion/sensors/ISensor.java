@@ -1,0 +1,27 @@
+package demo.ethings.com.ethingsble.fusion.sensors;
+
+import android.hardware.Sensor;
+
+public interface ISensor {
+
+    /**
+     * A constant describing an accelerometer demo.ethings.com.ethingsble.sensor type. See
+     * {@link android.hardware.SensorEvent#values SensorEvent.values} for more
+     * details.
+     */
+    public static final int TYPE_ACCELEROMETER = Sensor.TYPE_ACCELEROMETER;
+
+    /**
+     * A constant describing a magnetic field demo.ethings.com.ethingsble.sensor type. See
+     * {@link android.hardware.SensorEvent#values SensorEvent.values} for more
+     * details.
+     */
+    public static final int TYPE_MAGNETIC_FIELD = Sensor.TYPE_MAGNETIC_FIELD;
+
+    /** A constant describing a gyroscope demo.ethings.com.ethingsble.sensor type */
+    public static final int TYPE_GYROSCOPE = Sensor.TYPE_GYROSCOPE;
+
+    public float getMaxRange();
+
+    public int getType();
+}

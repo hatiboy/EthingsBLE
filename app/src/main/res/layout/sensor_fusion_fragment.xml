@@ -7,7 +7,7 @@
     tools:showIn="@layout/sensor_fusion_activity">
 
     <sample.ble.sensortag.gl.GLSurfaceView
-        android:id="@+id/gl"
+        android:id="@+id/demo.ethings.com.ethingsble.gl"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:keepScreenOn="true" />

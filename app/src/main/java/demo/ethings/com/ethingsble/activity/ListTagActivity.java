@@ -229,6 +229,7 @@ public class ListTagActivity extends Activity  {
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_READ_RSSI);
+        intentFilter.addAction(BluetoothLeService.ACTION_READ_PIN_LEVEL);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
         BTAdapter.startDiscovery();
         //notify data
@@ -483,7 +484,7 @@ public class ListTagActivity extends Activity  {
                 case BluetoothLeService.ACTION_GATT_DISCONNECTED:
                     Log.d(TAG, "onReceive: " + BluetoothLeService.ACTION_GATT_DISCONNECTED);
                     if (bundle != null) {
-                        String address = bundle.getString(BluetoothLeService.ACTION_INTENT_DEVICE_ADDRESS);
+                        String address = bundle.getString(BluetoothLeService.INTENT_DEVICE_ADDRESS);
                         if (address != null && BTAdapter != null) {
                             BluetoothDevice device = BTAdapter.getRemoteDevice(address);
                             if (device == null) {
@@ -498,7 +499,7 @@ public class ListTagActivity extends Activity  {
                     Log.d(TAG, "onReceive: " + BluetoothLeService.ACTION_GATT_CONNECTED);
 
                     if (bundle != null) {
-                        String address = bundle.getString(BluetoothLeService.ACTION_INTENT_DEVICE_ADDRESS);
+                        String address = bundle.getString(BluetoothLeService.INTENT_DEVICE_ADDRESS);
                         if (address != null && BTAdapter != null) {
                             BluetoothDevice device = BTAdapter.getRemoteDevice(address);
                             if (device == null) {
@@ -512,8 +513,8 @@ public class ListTagActivity extends Activity  {
                 case BluetoothLeService.ACTION_READ_RSSI:
                     Log.d(TAG, "onReceive: " + BluetoothLeService.ACTION_READ_RSSI);
                     if (bundle != null) {
-                        String address = bundle.getString(BluetoothLeService.ACTION_INTENT_DEVICE_ADDRESS);
-                        int rssi = bundle.getInt(BluetoothLeService.ACTION_INTENT_DEVICE_RSSI);
+                        String address = bundle.getString(BluetoothLeService.INTENT_DEVICE_ADDRESS);
+                        int rssi = bundle.getInt(BluetoothLeService.INTENT_DEVICE_RSSI);
                         if (address != null && BTAdapter != null) {
                             BluetoothDevice device = BTAdapter.getRemoteDevice(address);
                             if (device == null) {
@@ -523,6 +524,9 @@ public class ListTagActivity extends Activity  {
                             setDeviceRssi(device, rssi);
                         }
                     }
+                    break;
+                case BluetoothLeService.ACTION_READ_PIN_LEVEL:
+
                     break;
             }
         }

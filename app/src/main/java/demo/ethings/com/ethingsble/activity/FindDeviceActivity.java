@@ -341,6 +341,11 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
                     Log.d(TAG, "onCharacteristicRead value: " + characteristic.getValue());
                 }
             }
+
+            @Override
+            public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+                super.onDescriptorWrite(gatt, descriptor, status);
+            }
         });
     }
 

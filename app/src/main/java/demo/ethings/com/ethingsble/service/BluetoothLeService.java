@@ -55,13 +55,15 @@ public class BluetoothLeService extends Service {
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
-    public static final String ACTION_READ_RSSI = "com.ething.ble.tag.device.read.rssi";
-    public static final String ACTION_INTENT_DEVICE_ADDRESS = "com.ething.ble.tag.device.address";
-    public static final String ACTION_INTENT_DEVICE_RSSI = "com.ething.ble.tag.device.rssi";
+    public static final String INTENT_DEVICE_ADDRESS = "com.ething.ble.tag.device.address";
+    public static final String INTENT_DEVICE_RSSI = "com.ething.ble.tag.device.rssi";
+    public static final String INTENT_DEVICE_PINLEVEL = "com.ething.ble.tag.device.pin.level";
 
     public static final String ACTION_CALL_DISCONNECT = "com.ething.ble.tag.device.disconnect.gatt";
     public static final String ACTION_CALL_CONNECT = "com.ething.ble.tag.device.connect.gatt";
     public static final String ACTION_WRITE_65 = "com.ething.ble.tag.device.write65";
+    public static final String ACTION_READ_PIN_LEVEL = "com.ething.ble.read.pin.rssi";
+    public static final String ACTION_READ_RSSI = "com.ething.ble.tag.device.read.rssi";
 
     public final static String ACTION_GATT_CONNECTED =
             "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
@@ -80,6 +82,8 @@ public class BluetoothLeService extends Service {
     private String uuidNotifiService = "0000FFE0-0000-1000-8000-00805f9b34fb";
     private static final String CHARACTERISTIC_NOTIFICATION_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
     private String uuidNotifiCharacteristic = "0000ffe1-0000-1000-8000-00805f9b34fb";
+    private static final UUID Battery_Service_UUID = UUID.fromString("0000180F-0000-1000-8000-00805f9b34fb");
+    private static final UUID Battery_Level_UUID = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
 
 
     public ArrayList<String> deviceAddress;
@@ -90,16 +94,22 @@ public class BluetoothLeService extends Service {
     // connection change and services discovered.
 //    private final BluetoothGattCallback mGattCallback =
 
+    private void broadcastUpdatePinLevel(String address, String pin){
+        final Intent intent = new Intent(ACTION_READ_PIN_LEVEL);
+        intent.putExtra(INTENT_DEVICE_ADDRESS, address);
+        intent.putExtra(INTENT_DEVICE_PINLEVEL, pin);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
     private void broadcastUpdateState(final String action, String address) {
         final Intent intent = new Intent(action);
-        intent.putExtra(ACTION_INTENT_DEVICE_ADDRESS, address);
+        intent.putExtra(INTENT_DEVICE_ADDRESS, address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
-    private void broadcastUpdateRssi(String action, String address, int rssi) {
-        final Intent intent = new Intent(action);
-        intent.putExtra(ACTION_INTENT_DEVICE_ADDRESS, address);
-        intent.putExtra(ACTION_INTENT_DEVICE_RSSI, rssi);
+    private void broadcastUpdateRssi(String address, int rssi) {
+        final Intent intent = new Intent(ACTION_READ_RSSI);
+        intent.putExtra(INTENT_DEVICE_ADDRESS, address);
+        intent.putExtra(INTENT_DEVICE_RSSI, rssi);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -124,12 +134,12 @@ public class BluetoothLeService extends Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        assert deviceAddress != null;
-        for (int i = 0; i < deviceAddress.size(); i++) {
-            Log.d(TAG, "onStartCommand: device address: " + deviceAddress);
-            if (initialize())
-                connect(deviceAddress.get(i));
-        }
+        if (deviceAddress != null)
+            for (int i = 0; i < deviceAddress.size(); i++) {
+                Log.d(TAG, "onStartCommand: device address: " + deviceAddress);
+                if (initialize())
+                    connect(deviceAddress.get(i));
+            }
 
         //register Broadcast
         IntentFilter intentFilter = new IntentFilter();
@@ -325,8 +335,11 @@ public class BluetoothLeService extends Service {
             public void onCharacteristicRead(BluetoothGatt gatt,
                                              BluetoothGattCharacteristic characteristic,
                                              int status) {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+//                if (status == BluetoothGatt.GATT_SUCCESS) {
+//                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+//                }
+                if(status == BluetoothGatt.GATT_SUCCESS && characteristic.getUuid().equals(Battery_Level_UUID)){
+
                 }
             }
 
@@ -334,7 +347,11 @@ public class BluetoothLeService extends Service {
             public void onCharacteristicChanged(BluetoothGatt gatt,
                                                 BluetoothGattCharacteristic characteristic) {
 //                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-                if (characteristic.getUuid().toString().equals(uuidNotifiCharacteristic)) {
+//                if (characteristic.getUuid().toString().equals(uuidNotifiCharacteristic)) {
+//                    showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
+//                    gatt.readRemoteRssi();
+//                }
+                if(characteristic.getValue()[0] == 1){
                     showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
                     gatt.readRemoteRssi();
                 }
@@ -345,7 +362,7 @@ public class BluetoothLeService extends Service {
 //                super.onReadRemoteRssi(gatt, rssi, status);
                 Log.d(TAG, "onReadRemoteRssi: " + rssi);
                 if (BluetoothGatt.GATT_SUCCESS == status) {
-                    broadcastUpdateRssi(ACTION_READ_RSSI, device.getAddress(), rssi);
+                    broadcastUpdateRssi(device.getAddress(), rssi);
                 }
             }
 
@@ -362,6 +379,18 @@ public class BluetoothLeService extends Service {
                         toggleNotificationClick(true);
                     }
                 }
+            }
+
+            @Override
+            public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+//                super.onDescriptorWrite(gatt, descriptor, status);
+                Log.d(TAG, "onDescriptorWrite: " + descriptor.getCharacteristic().getUuid());
+            }
+
+            @Override
+            public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
+//                super.onReliableWriteCompleted(gatt, status);
+                Log.d(TAG, "onReliableWriteCompleted: " + gatt.getConnectedDevices());
             }
         });
         Log.d(TAG, "Trying to create a new connection.");
@@ -530,6 +559,7 @@ public class BluetoothLeService extends Service {
         // Builds the notification and issues it.
         mNotifyMgr.notify(notificationid + 158, mBuilder);
     }
+
     //save state of tag
     private void setStateDevice(BluetoothDevice bluetoothDevice, boolean state) {
         TagDevice device = new TagDevice();
@@ -541,7 +571,26 @@ public class BluetoothLeService extends Service {
         helper.insertDevice(device);
     }
 
+    /*read pin level*/
+    public void getbattery() {
+
+        BluetoothGattService batteryService = mBluetoothGatt.getService(Battery_Service_UUID);
+        if(batteryService == null) {
+            Log.d(TAG, "Battery service not found!");
+            return;
+        }
+
+        BluetoothGattCharacteristic batteryLevel = batteryService.getCharacteristic(Battery_Level_UUID);
+        if(batteryLevel == null) {
+            Log.d(TAG, "Battery level not found!");
+            return;
+        }
+        mBluetoothGatt.readCharacteristic(batteryLevel);
+        Log.v(TAG, "batteryLevel = " + mBluetoothGatt.readCharacteristic(batteryLevel));
+    }
+
     private Handler mHandler = new Handler();
+
     public void startTimer() {
         mHandler.postDelayed(updateTask, 3000);
     }
@@ -578,6 +627,7 @@ public class BluetoothLeService extends Service {
                     if (mBluetoothGatt != null)
                         mBluetoothGatt.readRemoteRssi();
                     break;
+
             }
         }
     };

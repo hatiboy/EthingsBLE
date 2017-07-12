@@ -48,7 +48,7 @@ import demo.ethings.com.ethingsble.service.BluetoothLeService;
 import demo.ethings.com.ethingsble.ui.DeviceScanActivity;
 import demo.ethings.com.ethingsble.ui.ErrorDialog;
 
-public class ListTagActivity extends Activity  {
+public class ListTagActivity extends Activity {
 
     private static final String TAG = ListTagActivity.class.getName();
     private ListView listTag;
@@ -128,11 +128,11 @@ public class ListTagActivity extends Activity  {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 TagDevice tag = list_tag_devices.get(position);
-                if(tag.getState()){
+                if (tag.getState()) {
                     final Intent intent = new Intent(ListTagActivity.this, FindDeviceActivity.class);
                     intent.putExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS, tag.getAddress());
                     startActivity(intent);
-                }else{
+                } else {
                     Toast.makeText(getApplicationContext(), "device not connected", Toast.LENGTH_SHORT).show();
                 }
 
@@ -303,7 +303,6 @@ public class ListTagActivity extends Activity  {
         for (int i = 0; i < list_tag_devices.size(); i++) {
             if (device.getAddress().equals(list_tag_devices.get(i).getAddress())) {
                 list_tag_devices.get(i).setRSSI(rssi);
-                list_tag_devices.get(i).setPin(72);
                 ListTagActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -311,6 +310,22 @@ public class ListTagActivity extends Activity  {
                         listTag.setAdapter(adapter);
                     }
                 });
+            }
+        }
+    }
+
+    public void updatePinlevel(String address , int pinlevel){
+        for (int i = 0; i < list_tag_devices.size(); i++) {
+            if (address.equals(list_tag_devices.get(i).getAddress())) {
+                list_tag_devices.get(i).setPin(pinlevel);
+                ListTagActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                        listTag.setAdapter(adapter);
+                    }
+                });
+
             }
         }
     }
@@ -526,8 +541,13 @@ public class ListTagActivity extends Activity  {
                     }
                     break;
                 case BluetoothLeService.ACTION_READ_PIN_LEVEL:
-
-                    break;
+                    if (bundle != null){
+                        String address = bundle.getString(BluetoothLeService.INTENT_DEVICE_ADDRESS, "");
+                        int pinlevel = bundle.getInt(BluetoothLeService.INTENT_DEVICE_PINLEVEL, 0);
+                        Log.d(TAG, "onReceive pinlevel: " + pinlevel);
+                        updatePinlevel(address, pinlevel);
+                    }
+                        break;
             }
         }
     };

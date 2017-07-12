@@ -87,6 +87,7 @@ public class BluetoothLeService extends Service {
 
 
     public ArrayList<String> deviceAddress;
+    public int pinlevel = 0;
     public static final int NOTIFI_STATE_ID = 158;
     private BLESQLiteHelper helper;
 
@@ -94,12 +95,13 @@ public class BluetoothLeService extends Service {
     // connection change and services discovered.
 //    private final BluetoothGattCallback mGattCallback =
 
-    private void broadcastUpdatePinLevel(String address, String pin){
+    private void broadcastUpdatePinLevel(String address, int pin) {
         final Intent intent = new Intent(ACTION_READ_PIN_LEVEL);
         intent.putExtra(INTENT_DEVICE_ADDRESS, address);
         intent.putExtra(INTENT_DEVICE_PINLEVEL, pin);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
+
     private void broadcastUpdateState(final String action, String address) {
         final Intent intent = new Intent(action);
         intent.putExtra(INTENT_DEVICE_ADDRESS, address);
@@ -338,8 +340,9 @@ public class BluetoothLeService extends Service {
 //                if (status == BluetoothGatt.GATT_SUCCESS) {
 //                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
 //                }
-                if(status == BluetoothGatt.GATT_SUCCESS && characteristic.getUuid().equals(Battery_Level_UUID)){
-
+                if (status == BluetoothGatt.GATT_SUCCESS && characteristic.getUuid().equals(Battery_Level_UUID)) {
+                    pinlevel = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+                    broadcastUpdatePinLevel(gatt.getDevice().getAddress(), pinlevel);
                 }
             }
 
@@ -351,7 +354,7 @@ public class BluetoothLeService extends Service {
 //                    showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
 //                    gatt.readRemoteRssi();
 //                }
-                if(characteristic.getValue()[0] == 1){
+                if (characteristic.getValue()[0] == 1) {
                     showNotification("Ethings", gatt.getDevice().getName() + " is finding your phone", true, 99);
                     gatt.readRemoteRssi();
                 }
@@ -363,6 +366,7 @@ public class BluetoothLeService extends Service {
                 Log.d(TAG, "onReadRemoteRssi: " + rssi);
                 if (BluetoothGatt.GATT_SUCCESS == status) {
                     broadcastUpdateRssi(device.getAddress(), rssi);
+                    getbattery();
                 }
             }
 
@@ -566,8 +570,9 @@ public class BluetoothLeService extends Service {
         device.setAddress(bluetoothDevice.getAddress());
         device.setName(bluetoothDevice.getName());
         device.setRSSI(0);
-        device.setPin(72);
+        device.setPin(pinlevel);
         device.setState(state);
+        helper.deleteDevice(bluetoothDevice.getAddress());
         helper.insertDevice(device);
     }
 
@@ -575,13 +580,13 @@ public class BluetoothLeService extends Service {
     public void getbattery() {
 
         BluetoothGattService batteryService = mBluetoothGatt.getService(Battery_Service_UUID);
-        if(batteryService == null) {
+        if (batteryService == null) {
             Log.d(TAG, "Battery service not found!");
             return;
         }
 
         BluetoothGattCharacteristic batteryLevel = batteryService.getCharacteristic(Battery_Level_UUID);
-        if(batteryLevel == null) {
+        if (batteryLevel == null) {
             Log.d(TAG, "Battery level not found!");
             return;
         }
@@ -599,11 +604,11 @@ public class BluetoothLeService extends Service {
         public void run() {
             Log.d(getString(R.string.app_name) + " ChatList.updateTask()",
                     "updateTask run!");
-            mBluetoothGatt.readRemoteRssi();
-            // queue the task to run again in 3 seconds...
-            mHandler.postDelayed(updateTask, 3000);
-
-
+            if (mBluetoothGatt != null) {
+                mBluetoothGatt.readRemoteRssi();
+                // queue the task to run again in 3 seconds...
+                mHandler.postDelayed(updateTask, 3000);
+            }
         }
     };
     BroadcastReceiver controllReceiver = new BroadcastReceiver() {

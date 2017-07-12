@@ -139,6 +139,7 @@ public class SplashActivity extends Activity {
             startActivityForResult(enableBT, REQUEST_BLUETOOTH);
         } else {
             startMainActivity();
+            finish();
         }
     }
 
@@ -168,7 +169,12 @@ public class SplashActivity extends Activity {
             }
         }.start();
     }
-//
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+    }
+    //
 //    @Override
 //    protected void onPostCreate(Bundle savedInstanceState) {
 //        super.onPostCreate(savedInstanceState);

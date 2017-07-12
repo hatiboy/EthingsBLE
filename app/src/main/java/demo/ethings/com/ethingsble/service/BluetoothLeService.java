@@ -267,11 +267,13 @@ public class BluetoothLeService extends Service {
         if (mBluetoothDeviceAddress != null && address.equals(mBluetoothDeviceAddress)
                 && mBluetoothGatt != null) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
-            if (mBluetoothGatt.connect()) {
-                mConnectionState = STATE_CONNECTING;
-                return true;
-            } else {
-                return false;
+            if (mConnectionState == STATE_DISCONNECTED) {
+                if (mBluetoothGatt.connect()) {
+                    mConnectionState = STATE_CONNECTING;
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
 
@@ -617,8 +619,10 @@ public class BluetoothLeService extends Service {
             String action = intent.getAction();
             switch (action) {
                 case ACTION_CALL_DISCONNECT:
-                    mBluetoothGatt.disconnect();
-                    mBluetoothGatt.close();
+                    if (mBluetoothGatt != null) {
+                        mBluetoothGatt.disconnect();
+                        mBluetoothGatt.close();
+                    }
                     break;
                 case ACTION_CALL_CONNECT:
                     mBluetoothGatt.connect();

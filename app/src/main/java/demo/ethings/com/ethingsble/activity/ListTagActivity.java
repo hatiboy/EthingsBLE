@@ -192,7 +192,7 @@ public class ListTagActivity extends Activity {
 
         requestLocation();
 
-
+        loadData(getIntent());
     }
 
 
@@ -222,7 +222,6 @@ public class ListTagActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadData(getIntent());
         //config Bluetooth Adapter:
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
@@ -454,10 +453,10 @@ public class ListTagActivity extends Activity {
 
     @Override
     protected void onPause() {
-        super.onPause();
         saveDatabase();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
         scanner.stop();
+        super.onPause();
     }
 
     private void saveDatabase() {

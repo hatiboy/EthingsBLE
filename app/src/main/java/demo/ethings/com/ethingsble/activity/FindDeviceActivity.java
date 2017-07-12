@@ -90,19 +90,6 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
 
         //init sqlite helper
         helper = new BLESQLiteHelper(this);
-        //get Data from Intent
-        Intent bundle = getIntent();
-        boolean isConnected = true;
-        try {
-            if (bundle != null) {
-                address = bundle.getStringExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS);
-                isConnected = bundle.getBooleanExtra(FindDeviceActivity.EXTRAS_DEVICE_CONNECT, true);
-                tg_connect.setChecked(isConnected);
-                bluetoothDevice = bluetoothAdapter.getRemoteDevice(address);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         //read led_state
 
 //        tg_find66 = (ToggleButton) findViewById(R.id.tg_find66);
@@ -170,6 +157,21 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
 //                    }
             }
         });
+
+        //get Data from Intent
+        Intent bundle = getIntent();
+        boolean isConnected = true;
+        try {
+            if (bundle != null) {
+                address = bundle.getStringExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS);
+                isConnected = bundle.getBooleanExtra(FindDeviceActivity.EXTRAS_DEVICE_CONNECT, true);
+                bluetoothDevice = bluetoothAdapter.getRemoteDevice(address);
+                tg_connect.setChecked(isConnected);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         final ActionBar actionBar = getSupportActionBar();
         final String deviceName = getDeviceName();
         if (TextUtils.isEmpty(deviceName)) {

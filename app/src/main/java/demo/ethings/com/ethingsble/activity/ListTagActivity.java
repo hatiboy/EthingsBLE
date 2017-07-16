@@ -192,7 +192,6 @@ public class ListTagActivity extends Activity {
 
         requestLocation();
 
-        loadData(getIntent());
     }
 
 
@@ -204,7 +203,12 @@ public class ListTagActivity extends Activity {
 
     private void loadData(Intent intent) {
         list_tag_devices = helper.getAllDevices();
-        adapter = new TagDeviceAdapter(this, R.layout.item_tag_device, list_tag_devices);
+        if (list_tag_devices.size() > 0){
+            setVisibleNodevice(true);
+        }else{
+            setVisibleNodevice(false);
+        }
+            adapter = new TagDeviceAdapter(this, R.layout.item_tag_device, list_tag_devices);
         listTag.setAdapter(adapter);
         if (list_tag_devices != null && list_tag_devices.size() > 0) {
             for (int i = 0; i < list_tag_devices.size(); i++) {
@@ -218,10 +222,20 @@ public class ListTagActivity extends Activity {
         }
     }
 
+    public void setVisibleNodevice(boolean check) {
+        if (check) {
+            findViewById(R.id.no_device).setVisibility(View.GONE);
+            findViewById(R.id.list_tag).setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.no_device).setVisibility(View.VISIBLE);
+            findViewById(R.id.list_tag).setVisibility(View.GONE);
+        }
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
+        loadData(getIntent());
         //config Bluetooth Adapter:
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
@@ -313,7 +327,7 @@ public class ListTagActivity extends Activity {
         }
     }
 
-    public void updatePinlevel(String address , int pinlevel){
+    public void updatePinlevel(String address, int pinlevel) {
         for (int i = 0; i < list_tag_devices.size(); i++) {
             if (address.equals(list_tag_devices.get(i).getAddress())) {
                 list_tag_devices.get(i).setPin(pinlevel);
@@ -540,13 +554,13 @@ public class ListTagActivity extends Activity {
                     }
                     break;
                 case BluetoothLeService.ACTION_READ_PIN_LEVEL:
-                    if (bundle != null){
+                    if (bundle != null) {
                         String address = bundle.getString(BluetoothLeService.INTENT_DEVICE_ADDRESS, "");
                         int pinlevel = bundle.getInt(BluetoothLeService.INTENT_DEVICE_PINLEVEL, 0);
                         Log.d(TAG, "onReceive pinlevel: " + pinlevel);
                         updatePinlevel(address, pinlevel);
                     }
-                        break;
+                    break;
             }
         }
     };

@@ -27,7 +27,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/logo_blue"
+        android:icon="@drawable/logolaka"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"

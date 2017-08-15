@@ -229,6 +229,7 @@ public class ListTagActivity extends Activity {
         } else {
             findViewById(R.id.no_device).setVisibility(View.VISIBLE);
             findViewById(R.id.list_tag).setVisibility(View.GONE);
+            refresh.setRefreshing(false);
         }
     }
 

@@ -165,8 +165,8 @@ public class FindDeviceActivity extends BleServiceBindingActivity {
             if (bundle != null) {
                 address = bundle.getStringExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS);
                 isConnected = bundle.getBooleanExtra(FindDeviceActivity.EXTRAS_DEVICE_CONNECT, true);
-                bluetoothDevice = bluetoothAdapter.getRemoteDevice(address);
                 tg_connect.setChecked(isConnected);
+                bluetoothDevice = bluetoothAdapter.getRemoteDevice(address);
             }
         } catch (Exception e) {
             e.printStackTrace();

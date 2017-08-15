@@ -20,7 +20,7 @@ public class SplashActivity extends Activity {
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
      */
-    public static int REQUEST_BLUETOOTH = 1;
+    public static int REQUEST_BLUETOOTH = 1999;
     private BluetoothAdapter BTAdapter;
     private int count = 0;
 //    private static final boolean AUTO_HIDE = true;
@@ -146,17 +146,7 @@ public class SplashActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (BTAdapter.isEnabled()) {
-            startMainActivity();
-        } else if (count == 2) {
-            //hoi 3 lan neu khong bat bluetooth thi thoat app
-            finish();
-        }
-        else {
-            count++;
-            Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBT, REQUEST_BLUETOOTH);
-        }
+
     }
 
     public void startMainActivity() {
@@ -173,6 +163,19 @@ public class SplashActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 //        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_BLUETOOTH)
+            if (BTAdapter.isEnabled()) {
+                startMainActivity();
+            } else {
+                if (count == 2) {
+                    //hoi 3 lan neu khong bat bluetooth thi thoat app
+                    finish();
+                } else {
+                    count++;
+                    Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableBT, REQUEST_BLUETOOTH);
+                }
+            }
     }
     //
 //    @Override

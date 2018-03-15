@@ -1,0 +1,16 @@
+package com.ethings.ble.sensor.ti;
+
+import com.ethings.ble.sensor.BaseSensor;
+
+public abstract class TiRangeSensors<T, R> extends BaseSensor<T> implements TiPeriodicalSensor {
+    /**
+     * Constructor.
+     *
+     * @param data - instance of data.
+     */
+    protected TiRangeSensors(T data) {
+        super(data);
+    }
+
+    public abstract R getMaxRange();
+}

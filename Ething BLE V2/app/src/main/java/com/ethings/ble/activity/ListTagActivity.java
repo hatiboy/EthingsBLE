@@ -41,6 +41,7 @@ import com.ethings.ble.adapter.TagDeviceAdapter;
 import com.ethings.ble.model.TagDevice;
 import com.ethings.ble.ui.DeviceScanActivity;
 import com.ethings.ble.ui.ErrorDialog;
+import com.ethings.ble.util.Constants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,10 +131,11 @@ public class ListTagActivity extends Activity {
                     for (BluetoothDevice device : onlineDevice) {
                         //find device connected:
                         if (device.getAddress().equals(list_tag_devices.get(position).getAddress())) {
-                            final Intent intent = new Intent(ListTagActivity.this, FindDeviceActivity.class);
-                            intent.putExtra(FindDeviceActivity.EXTRAS_DEVICE_NAME, device.getName());
-                            intent.putExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-                            intent.putExtra("device", device);
+                            final Intent intent = new Intent(ListTagActivity.this, DeviceControllerActivity.class);
+                            intent.putExtra(Constants.EXTRAS_DEVICE_NAME, device.getName());
+                            intent.putExtra(Constants.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+                            intent.putExtra(Constants.EXTRAS_DEVICE_IS_CONNECTED, list_tag_devices.get(position).getState());
+                            intent.putExtra(Constants.EXTRAS_BLUETOOTH_DEVICE, device);
                             startActivity(intent);
                         }
                     }

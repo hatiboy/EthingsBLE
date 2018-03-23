@@ -58,4 +58,7 @@
     <string name="menu_lock_orientation">Lock screen rotation</string>
     <string name="menu_unlock_orientation">Allow screen rotation</string>
     <string name="menu_searching">Searching…</string>
+    <string name="connection_fail">Không thể kết nối đến thiết bị này</string>
+    <string name="add_new_tag">Add new tag</string>
+    <string name="no_device">Bạn không có thiết bị nào. Click add để tìm thiết bị</string>
 </resources>

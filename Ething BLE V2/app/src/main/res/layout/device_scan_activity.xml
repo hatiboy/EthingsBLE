@@ -43,7 +43,7 @@
         android:layout_marginBottom="@dimen/fab_margin"
         android:layout_marginEnd="@dimen/fab_margin"
         android:layout_marginRight="@dimen/fab_margin"
-        app:layout_behavior="ui.utils.ScrollBehavior">
+        app:layout_behavior="com.ethings.ble.ui.utils.ScrollBehavior">
 
         <ProgressBar
             android:id="@android:id/progress"

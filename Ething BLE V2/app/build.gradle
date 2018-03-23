@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
 
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+}
 android {
     compileSdkVersion 27
     buildToolsVersion "27.0.3"
@@ -19,6 +23,7 @@ android {
     }
     lintOptions {
         abortOnError false
+        disable 'PrivateResource'
     }
 
 }
@@ -38,6 +43,7 @@ repositories {
         url 'https://maven.google.com/'
         name 'Google'
     }
+    maven { url 'https://maven.fabric.io/public' }
 }
 
 dependencies {
@@ -59,6 +65,9 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.google.firebase:firebase-core:11.8.0'
 
+    compile('com.crashlytics.sdk.android:crashlytics:2.9.1@aar') {
+        transitive = true
+    }
 }
 // Add to the bottom of the file
 apply plugin: 'com.google.gms.google-services'

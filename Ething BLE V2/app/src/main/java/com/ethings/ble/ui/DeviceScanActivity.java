@@ -26,11 +26,12 @@ import com.chimeraiot.android.ble.BleScanner;
 import com.chimeraiot.android.ble.BleUtils;
 import com.ethings.ble.R;
 import com.ethings.ble.activity.BLESQLiteHelper;
-import com.ethings.ble.activity.FindDeviceActivity;
+import com.ethings.ble.activity.DeviceControllerActivity;
 import com.ethings.ble.adapter.BleDevicesAdapter;
 import com.ethings.ble.configure.AppConfig;
 import com.ethings.ble.fusion.SensorFusionActivity;
 import com.ethings.ble.model.TagDevice;
+import com.ethings.ble.util.Constants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -304,10 +305,11 @@ public class DeviceScanActivity extends AppCompatActivity
             return;
         }
 
-        final Intent intent = new Intent(this, FindDeviceActivity.class);
-        intent.putExtra(FindDeviceActivity.EXTRAS_DEVICE_NAME, device.getName());
-        intent.putExtra(FindDeviceActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-        intent.putExtra("device", leDeviceListAdapter.getDevice(position));
+        final Intent intent = new Intent(this, DeviceControllerActivity.class);
+        intent.putExtra(Constants.EXTRAS_DEVICE_NAME, device.getName());
+        intent.putExtra(Constants.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+        intent.putExtra(Constants.EXTRAS_BLUETOOTH_DEVICE, leDeviceListAdapter.getDevice(position));
+        intent.putExtra(Constants.EXTRAS_DEVICE_IS_CONNECTED, false);
         startActivity(intent);
 
     }

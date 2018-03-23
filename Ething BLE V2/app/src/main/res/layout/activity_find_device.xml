@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.ethings.ble.activity.FindDeviceActivity">
+    tools:context=".activity.DeviceControllerActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -35,7 +35,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"></LinearLayout>
+                    android:layout_weight="1"/>
 
                 <ToggleButton
                     android:id="@+id/tg_connect"
@@ -43,30 +43,11 @@
                     android:layout_height="wrap_content"
                     android:background="@android:color/transparent"
                     android:gravity="center"
+                    android:checked="true"
                     android:textOff="@string/menu_connect"
                     android:textOn="@string/menu_disconnect" />
             </LinearLayout>
         </android.support.v7.widget.Toolbar>
-        <!--<TextView-->
-        <!--android:id="@+id/data_characteristic_uuid"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginLeft="16dp"-->
-        <!--android:layout_marginRight="16dp"-->
-        <!--android:text="@string/no_data_characteristic"-->
-        <!--android:textAppearance="@style/CodeTextAppearance"-->
-        <!--android:textColor="?actionMenuTextColor" />-->
-
-        <!--<TextView-->
-        <!--android:id="@+id/data_characteristic_value"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginLeft="16dp"-->
-        <!--android:layout_marginRight="16dp"-->
-        <!--android:layout_marginBottom="8dp"-->
-        <!--android:textAppearance="@style/CodeTextAppearance"-->
-        <!--android:textColor="?actionMenuTextColor" />-->
-
     </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
@@ -74,52 +55,15 @@
         android:layout_height="0dp"
         android:layout_gravity="center"
         android:layout_weight="1"
+        android:background="@color/black"
         android:gravity="center"
         android:orientation="vertical">
-
-        <!--<ToggleButton-->
-        <!--android:id="@+id/tg_find66"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_gravity="center_vertical"-->
-        <!--android:layout_marginLeft="30dp"-->
-        <!--android:layout_marginRight="30dp"-->
-        <!--android:background="@color/black"-->
-        <!--android:gravity="center"-->
-        <!--android:textColor="@color/white"-->
-        <!--android:textOff="remote off"-->
-        <!--android:textOn="remote On"-->
-        <!--tools:layout_editor_absoluteX="8dp" />-->
-
         <ToggleButton
-            android:id="@+id/tg_find65"
-            android:layout_width="match_parent"
+            android:id="@+id/tg_led"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginLeft="30dp"
-            android:layout_marginRight="30dp"
-            android:layout_marginTop="10dp"
-            android:background="@color/black"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textOff="led off"
-            android:textOn="led on"
-            tools:layout_editor_absoluteX="8dp" />
-
-        <!--<ToggleButton-->
-        <!--android:id="@+id/tg_notification"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_gravity="center_vertical"-->
-        <!--android:layout_marginLeft="30dp"-->
-        <!--android:layout_marginRight="30dp"-->
-        <!--android:layout_marginTop="10dp"-->
-        <!--android:background="@color/black"-->
-        <!--android:gravity="center"-->
-        <!--android:onClick="toggleNotificationClick"-->
-        <!--android:textColor="@color/white"-->
-        <!--android:textOff="notification off"-->
-        <!--android:textOn="notification on"-->
-        <!--tools:layout_editor_absoluteX="8dp" />-->
+            android:background="@drawable/toggle_selector"
+            android:textOff=""
+            android:textOn=""/>
     </LinearLayout>
 </LinearLayout>
